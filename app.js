@@ -5,32 +5,38 @@ const database = new Datastore("database.db");
 database.loadDatabase();
 
 //Getting all categories from Mercadona
-async function getCategories() {
-  const categoriesArr = [];
-  const url = "https://tienda.mercadona.es/api/categories/";
-  const res = await fetch(url);
-  const data = await res.json();
-  const supraCat = data.results;
-  supraCat.forEach((cat) => {
-    const categories = cat.categories;
-    categories.forEach((cat) => categoriesArr.push(cat.id));
-  });
-  return categoriesArr;
-}
+// async function getCategories() {
+//   const categoriesArr = [];
+//   const url = "https://tienda.mercadona.es/api/categories/";
+//   const res = await fetch(url);
+//   const data = await res.json();
+//   const supraCat = data.results;
+//   supraCat.forEach((cat) => {
+//     const categories = cat.categories;
+//     categories.forEach((cat) => categoriesArr.push(cat.id));
+//   });
+//   return categoriesArr;
+// }
 
-const categoriesId = await getCategories();
+// const categoriesId = await getCategories();
 
 let test = [];
-let notUnitPrice = [];
 
 //Getting product names & prices
 
-categoriesId.forEach((id, i) => {
-  setTimeout(() => {
-    getProducts(id);
-    console.log(i);
-  }, i * 3000);
-});
+// categoriesId.forEach((id, i) => {
+//   setTimeout(() => {
+//     getProducts(id);
+//     console.log(i);
+//   }, i * 3000);
+// });
+
+// find id
+function findId() {
+  database.find({ _id: product.id }, function () {
+    return true;
+  });
+}
 
 async function getProducts(id) {
   const url = `https://tienda.mercadona.es/api/categories/${id}`;
@@ -40,14 +46,29 @@ async function getProducts(id) {
   categories.forEach((cat) => {
     const products = cat.products;
     products.forEach((product) => {
-      let prod = new Object();
-      prod.id = product.id;
-      prod.name = product.display_name;
-      prod.price = product.price_instructions.unit_price;
+      if (findId) {
+        console.log("Exists");
+      } else {
+      }
+      let time = new Date.now()
+      let prod = {
+        _id: product.id,
+        name: product.name,
+        prices: [Date.now()]:product.price_instructions.unit_price; },
+      };
+
+      // new Object();
+      // prod._id = product.id;
+      // prod.name = product.display_name;
+
+      // prod.prices[Date.now()] = product.price_instructions.unit_price;
+
       test.push(prod);
-      database.insert(prod);
     });
   });
 
   test.sort((a, b) => a.id - b.id);
+  database.insert(test);
 }
+
+getProducts(115);
