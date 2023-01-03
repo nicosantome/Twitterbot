@@ -1,6 +1,9 @@
 import fetch from "node-fetch";
 import Datastore from "nedb";
 import Twit from "twit";
+import * as dotenv from "dotenv";
+dotenv.config();
+console.log(process.env);
 
 //This first DB saves all products from the web store
 const db = new Datastore("database.db");
@@ -12,10 +15,10 @@ dailyUpdate.loadDatabase();
 
 // Twitter library
 const T = new Twit({
-  consumer_key: "zBvUi9GyGh6Ggp1QYYnTifrs4",
-  consumer_secret: "EMFrJMWilJZ4fxrG7yKjgUySIEtfrgXaWtqTaJiTPBd2SIztQH",
-  access_token: "1600579008839696417-izfg1tLMgopTKThbJf92zSUYywbvhQ",
-  access_token_secret: "aapLmnDezZEvrIOF3TZHLBkC450NszgK4N3NoZtMy4pqu",
+  consumer_key: process.env.CONSUMER_KEY,
+  consumer_secret: process.env.CONSUMER_SECRET,
+  access_token: process.env.ACCESS_TOKEN,
+  access_token_secret: process.env.ACCESS_TOKEN_SECRET,
 });
 
 //This next 3 secondary functions are for the main getProducts function work later
