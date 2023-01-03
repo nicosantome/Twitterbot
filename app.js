@@ -3,7 +3,7 @@ import Datastore from "nedb";
 import Twit from "twit";
 import * as dotenv from "dotenv";
 dotenv.config();
-console.log(process.env);
+
 
 //This first DB saves all products from the web store
 const db = new Datastore("database.db");
