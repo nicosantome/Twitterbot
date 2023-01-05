@@ -127,7 +127,7 @@ async function getProducts(catId) {
 // ********** TwitterBot functionality **********
 
 // Function creates a string with the price increase or decrease of each product on dailyUpdate DB and posts the string to tweeter
-function createPost(id) {
+function processUpdate(id) {
   //Compares last price and previous price and inform if "Increase" or "Decrease", how much and the percentage of the change
   db.find({ _id: id }, function (err, docs) {
     let lastPrice = docs[0].prices[docs[0].prices.length - 1].price;
@@ -168,7 +168,7 @@ function tweet() {
       docs.forEach((doc, i) => {
         setTimeout(() => {
           // The timeout is as per Twitter permited posts per minute
-          createPost(doc.newPriceId);
+          processUpdate(doc.newPriceId);
         }, i * 10000);
       });
       dailyUpdate.remove({}, { multi: true });
