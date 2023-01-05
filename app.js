@@ -130,6 +130,12 @@ async function getProducts(catId) {
 function processUpdate(id) {
   //Compares last price and previous price and inform if "Increase" or "Decrease", how much and the percentage of the change
   db.find({ _id: id }, function (err, docs) {
+    let prices = [];
+    let timestamps = [];
+    docs[0].prices.forEach((price) => {
+      console.log(price);
+    });
+    console.log(prices, timestamps);
     let lastPrice = docs[0].prices[docs[0].prices.length - 1].price;
     let prevPrice = docs[0].prices[docs[0].prices.length - 2].price;
     let update = lastPrice > prevPrice ? "Aumento" : "Bajada";
