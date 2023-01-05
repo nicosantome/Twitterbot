@@ -2,8 +2,9 @@ import fetch from "node-fetch";
 import Datastore from "nedb";
 import Twit from "twit";
 import * as dotenv from "dotenv";
-dotenv.config();
+import { Agent } from "https";
 
+dotenv.config();
 
 //This first DB saves all products from the web store
 const db = new Datastore("database.db");
@@ -63,6 +64,14 @@ function createNewProduct(product) {
   db.insert(prod);
 }
 
+//Function that takes a string as an argument and posts it in Twitter
+function post(str) {
+  T.post("statuses/update", { status: str }, function (err, data, response) {
+    if (err) console.error(err);
+    else console.log(response.statusCode, response.statusMessage);
+  });
+}
+
 //********* Product fetch + DBs maintainance *********
 
 // Getting all product categories from Mercadona
@@ -79,12 +88,17 @@ async function getCategories() {
   return categoriesArr;
 }
 
-const categoriesId = await getCategories();
+const categoriesId = [115];
+//await getCategories();
 
 //Function fetches all products from a specific category (catId) of the supermarket, it creates and updates "db" database with all products and it creates a "dailyUpdate" db with the price variation products that will be tweeted later on.
 async function getProducts(catId) {
   const url = `https://tienda.mercadona.es/api/categories/${catId}`;
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    agent: new Agent({
+      rejectUnauthorized: false,
+    }),
+  });
   const data = await res.json();
   //Products are nested 2 levels deep in the response, therefore 2 forEach
   const categories = data.categories;
@@ -133,10 +147,7 @@ function createPost(id) {
       `;
 
     //This below post the string created
-    T.post("statuses/update", { status: str }, function (err, data, response) {
-      if (err) console.error(err);
-      else console.log(response.statusCode, response.statusMessage);
-    });
+    post(str);
   });
 }
 
