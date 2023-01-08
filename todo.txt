@@ -1,4 +1,14 @@
-0% increase - decrease in tweets
+0% increase - decrease in tweets ✅
 
-Only tweet more than x percent in one price change / tweet if more than x percent change in x days
+Only tweet more than x percent in one price change / tweet if more than x percent change in x days ✅
+
+Change location of tweet timer (Timeout is running also for filter out updates)
+
+Add charts
+
+Create front End
+
+Refactor / Modules?
+
+Adapt for new supermarkets
 

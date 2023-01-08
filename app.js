@@ -88,8 +88,7 @@ async function getCategories() {
   return categoriesArr;
 }
 
-const categoriesId = [115];
-//await getCategories();
+const categoriesId = await getCategories();
 
 //Function fetches all products from a specific category (catId) of the supermarket, it creates and updates "db" database with all products and it creates a "dailyUpdate" db with the price variation products that will be tweeted later on.
 async function getProducts(catId) {
@@ -130,30 +129,74 @@ async function getProducts(catId) {
 function processUpdate(id) {
   //Compares last price and previous price and inform if "Increase" or "Decrease", how much and the percentage of the change
   db.find({ _id: id }, function (err, docs) {
+    function checkCase1() {
+      let [p0, p1] = [prices[prices.length - 1], prices[prices.length - 2]];
+      let update = p0 > p1 ? "Aumento" : "Bajada";
+      let diferencia = update == "Aumento" ? (p0 - p1) / p1 : (p1 - p0) / p1;
+      if (diferencia > relevantUpdateAmount) {
+        let str = `
+      ${docs[0].name}\n
+    ${update} de precio\n
+    Antes: €${p1}\n
+    Ahora: €${p0}\n
+    ${update == "Aumento" ? "🔺" : "🔻"} ${(diferencia * 100).toFixed()}%
+    `;
+        return str;
+      } else return false;
+    }
+    function checkCase2() {
+      let [p0, p1, p2] = [
+        prices[prices.length - 1],
+        prices[prices.length - 2],
+        prices[prices.length - 3],
+      ];
+      let [t0, t1, t2] = [
+        timestamps[timestamps.length - 1],
+        timestamps[timestamps.length - 2],
+        timestamps[timestamps.length - 3],
+      ];
+      let update;
+      if (p0 > p1 && p1 > p2) {
+        update = "Aumento";
+      }
+      if (p0 < p1 && p1 < p2) {
+        update = "Bajada";
+      }
+
+      let diferencia01 = update == "Aumento" ? (p0 - p1) / p1 : (p1 - p0) / p1;
+      let diferencia02 = update == "Aumento" ? (p0 - p2) / p2 : (p2 - p0) / p2;
+      let diferencia12 = update == "Aumento" ? (p1 - p2) / p2 : (p2 - p1) / p2;
+      if (
+        diferencia01 < relevantUpdateAmount &&
+        diferencia12 < relevantUpdateAmount &&
+        diferencia02 > relevantUpdateAmount &&
+        t0 - t2 < relevantTimestampJumps
+      ) {
+        let str = `
+        ${docs[0].name}\n
+        ${update} de precio en ${relevantTimestampJumps / 86400000} días\n
+        Antes: €${p2}\n
+        Ahora: €${p0}\n
+        ${update == "Aumento" ? "🔺" : "🔻"} ${(diferencia02 * 100).toFixed()}%
+        `;
+        return str;
+      } else return false;
+    }
+
     let prices = [];
     let timestamps = [];
     docs[0].prices.forEach((price) => {
-      console.log(price);
+      timestamps.push(price.timestamp);
+      prices.push(price.price);
     });
-    console.log(prices, timestamps);
-    let lastPrice = docs[0].prices[docs[0].prices.length - 1].price;
-    let prevPrice = docs[0].prices[docs[0].prices.length - 2].price;
-    let update = lastPrice > prevPrice ? "Aumento" : "Bajada";
+    let relevantUpdateAmount = 0.05;
+    let relevantTimestampJumps = 86400000 * 3; //86400000 = 1day
 
-    let diferencia =
-      update == "Aumento"
-        ? (lastPrice - prevPrice) / prevPrice
-        : (prevPrice - lastPrice) / prevPrice;
-    let str = `
-      ${docs[0].name}\n
-      ${update} de precio\n
-      Antes: €${docs[0].prices[docs[0].prices.length - 2].price}\n
-      Ahora: €${docs[0].prices[docs[0].prices.length - 1].price}\n
-      ${update == "Aumento" ? "🔺" : "🔻"} ${(diferencia * 100).toFixed()}%
-      `;
-
-    //This below post the string created
-    post(str);
+    if (checkCase1()) {
+      post(checkCase1());
+    } else if (checkCase2()) {
+      post(checkCase2());
+    }
   });
 }
 
@@ -171,6 +214,7 @@ function product() {
 function tweet() {
   return new Promise((resolve, reject) => {
     dailyUpdate.find({}, function (err, docs) {
+      console.log(`Total updates this run: ${docs.length}`);
       docs.forEach((doc, i) => {
         setTimeout(() => {
           // The timeout is as per Twitter permited posts per minute
@@ -179,6 +223,7 @@ function tweet() {
       });
       dailyUpdate.remove({}, { multi: true });
       dailyUpdate.persistence.compactDatafile();
+
       resolve();
     });
   });
