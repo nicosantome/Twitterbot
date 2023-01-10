@@ -78,7 +78,11 @@ function post(str) {
 async function getCategories() {
   const categoriesArr = [];
   const url = "https://tienda.mercadona.es/api/categories/";
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    agent: new Agent({
+      rejectUnauthorized: false,
+    }),
+  });
   const data = await res.json();
   const supraCat = data.results;
   supraCat.forEach((cat) => {
