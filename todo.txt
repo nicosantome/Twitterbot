@@ -2,6 +2,10 @@
 
 Only tweet more than x percent in one price change / tweet if more than x percent change in x days ✅
 
+Count and tweet, amount of increase vs amount of decrease
+
+Rank top increments and decrements
+
 Change location of tweet timer (Timeout is running also for filter out updates)
 
 Add charts
